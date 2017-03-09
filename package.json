@@ -1,0 +1,29 @@
+{
+  "name": "google-docs-writing-companion",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "babel-cli": "^6.23.0",
+    "express": "^4.15.2",
+    "googleapis": "^17.1.0",
+    "html-inline": "^1.2.0",
+    "open": "^0.0.5",
+    "react-scripts": "0.9.4"
+  },
+  "dependencies": {
+    "node-fetch": "^1.6.3",
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build && yarn post-process-for-google",
+    "post-process-for-google": "yarn build-sidebar && yarn build-backend && rm -r build",
+    "build-sidebar": "mkdir -p dist && html-inline -i build/index.html -o dist/sidebar.html",
+    "build-backend": "mkdir -p dist && babel src/backend.js --out-file dist/code.gs",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "deploy-token": "source .env && node build-support/get-deploy-token.js",
+    "deploy": "source .env && node build-support/deploy.js"
+  }
+}

@@ -34,11 +34,17 @@ const randomSubset = (arr, size) => {
 const analyze = textElements => {
   const randomTextElements = randomSubset(textElements, 5);
   const randomNonsensicalSuggestions = randomTextElements.map((element, i) => {
+    const randomStartIndex = Math.floor(Math.random() * element.text.length);
+    const randomEndIndex = Math.min(randomStartIndex + 15, element.text.length);
+
     return {
       id: i,
-      description: 'You should delete this sentence',
+      description: 'You should delete this part',
       context: element.text,
-      element: element
+      startIndex: randomStartIndex,
+      endIndex: randomEndIndex,
+      element: element,
+      replacement: ''
     };
   });
 
@@ -66,13 +72,26 @@ const runAnalysis = () => {
     });
 };
 
-const focusOnElement = element => {
+const focusOnElement = elementId => {
   return new Promise(function(resolve, reject) {
     if (process.env.NODE_ENV === 'production') {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
-        .focusOnElement(element.id);
+        .focusOnElement(elementId);
+    } else {
+      resolve({ success: true });
+    }
+  });
+};
+
+const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
+  return new Promise(function(resolve, reject) {
+    if (process.env.NODE_ENV === 'production') {
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        .fixFromSuggestion(elementId, startIndex, endIndex, replacement);
     } else {
       resolve({ success: true });
     }
@@ -83,11 +102,26 @@ const Suggestion = (handleLinkTo, handleFixIt) => suggestion => {
   return (
     <div key={suggestion.id}>
       <p>{suggestion.description}</p>
+      <SuggestionContext suggestion={suggestion} />
       <p>
-        <a onClick={() => handleLinkTo(suggestion.id)}>{suggestion.context}</a>
+        <a onClick={() => handleLinkTo(suggestion.id)}>Scroll to</a>
+        <a onClick={() => handleFixIt(suggestion.id)}>Fix it!</a>
       </p>
-      <p><a onClick={() => handleFixIt(suggestion.id)}>Fix it!</a></p>
     </div>
+  );
+};
+
+const SuggestionContext = ({ suggestion }) => {
+  const before = suggestion.context.slice(0, suggestion.startIndex);
+  const core = suggestion.context.slice(
+    suggestion.startIndex,
+    suggestion.endIndex
+  );
+  const after = suggestion.context.slice(suggestion.endIndex);
+  return (
+    <p>
+      {before}<span className="highlight">{core}</span>{after}
+    </p>
   );
 };
 
@@ -110,14 +144,28 @@ class App extends Component {
   }
 
   handleFixIt(suggestionId) {
-    console.log('handleFixIt', suggestionId);
+    const suggestion = this.getSuggestion(suggestionId);
+
+    fixFromSuggestion(
+      suggestion.element.id,
+      suggestion.startIndex,
+      suggestion.endIndex,
+      suggestion.replacement
+    ).then(result => {
+      this.setState({
+        analysis: {
+          suggestions: this.state.analysis.suggestions.filter(
+            s => s.id !== suggestionId
+          )
+        }
+      });
+    });
   }
 
   handleLinkTo(suggestionId) {
     const suggestion = this.getSuggestion(suggestionId);
-    console.log(suggestion);
 
-    focusOnElement(suggestion.element).then(result => {
+    focusOnElement(suggestion.element.id).then(result => {
       console.log(result);
     });
   }

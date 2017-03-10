@@ -25,9 +25,21 @@ const focusOnElement = elementId => {
   const activeDocument = DocumentApp.getActiveDocument();
   const namedRange = activeDocument.getNamedRangeById(elementId);
   const elements = namedRange.getRange().getRangeElements();
-  const firstElement = elements[0].getElement();
-  const position = activeDocument.newPosition(firstElement, 0);
+  const element = elements[0].getElement();
+  const position = activeDocument.newPosition(element, 0);
   activeDocument.setCursor(position);
+
+  return { success: true };
+};
+
+const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
+  const activeDocument = DocumentApp.getActiveDocument();
+  const namedRange = activeDocument.getNamedRangeById(elementId);
+  const elements = namedRange.getRange().getRangeElements();
+  const element = elements[0].getElement();
+
+  element.deleteText(startIndex, endIndex - 1);
+  element.insertText(startIndex, replacement);
 
   return { success: true };
 };

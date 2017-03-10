@@ -24,6 +24,6 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "deploy-token": "source .env && node build-support/get-deploy-token.js",
-    "deploy": "source .env && node build-support/deploy.js"
+    "deploy": "yarn build && source .env && node build-support/deploy.js"
   }
 }

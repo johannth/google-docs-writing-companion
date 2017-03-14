@@ -3,21 +3,22 @@
 
 // eslint-next
 const onOpen = e => {
-  Logger.log('onOpen');
+  Logger.log("onOpen");
   DocumentApp.getUi()
     .createAddonMenu()
-    .addItem('Start', 'showSidebar')
+    .addItem("Open", "showSidebar")
     .addToUi();
 };
 
 const onInstall = e => {
-  Logger.log('onInstall');
+  Logger.log("onInstall");
   onOpen(e);
 };
 
 const showSidebar = () => {
-  const ui = HtmlService.createHtmlOutputFromFile('Sidebar')
-    .setTitle('Writing Companion');
+  const ui = HtmlService.createHtmlOutputFromFile("Sidebar").setTitle(
+    "Writing Companion"
+  );
   DocumentApp.getUi().showSidebar(ui);
 };
 
@@ -44,10 +45,36 @@ const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
   return { success: true };
 };
 
-const highlightAnalysis = highlights => {
+const clearHighlightedSuggestions = () => {
   const activeDocument = DocumentApp.getActiveDocument();
+  const previousHighlights = activeDocument.getNamedRanges("suggestion");
+  previousHighlights.forEach(namedRangeForHighlight => {
+    Logger.log(namedRangeForHighlight);
+    namedRangeForHighlight
+      .getRange()
+      .getRangeElements()
+      .map(e => e.getElement())
+      .forEach(element => {
+        const attributes = {};
+        attributes[DocumentApp.Attribute.BACKGROUND_COLOR] = null;
+
+        element.setAttributes(attributes);
+      });
+    namedRangeForHighlight.remove();
+  });
+};
+
+const highlightSuggestions = highlights => {
+  const activeDocument = DocumentApp.getActiveDocument();
+
+  clearHighlightedSuggestions();
+
   highlights.forEach(({ elementId, startIndex, endIndex, color }) => {
     const namedRange = activeDocument.getNamedRangeById(elementId);
+    if (!namedRange) {
+      return;
+    }
+
     const elements = namedRange.getRange().getRangeElements();
     const element = elements[0].getElement();
 
@@ -55,6 +82,10 @@ const highlightAnalysis = highlights => {
     attributes[DocumentApp.Attribute.BACKGROUND_COLOR] = color;
 
     element.setAttributes(startIndex, endIndex - 1, attributes);
+
+    const rangeBuilder = activeDocument.newRange();
+    rangeBuilder.addElement(element, startIndex, endIndex - 1);
+    activeDocument.addNamedRange("suggestion", rangeBuilder.build());
   });
 
   return { success: true };
@@ -79,9 +110,8 @@ const addIdsToElements = (activeDocument, elements) => {
     const rangeBuilder = activeDocument.newRange();
     rangeBuilder.addElement(element);
 
-    // It might be that a Bookmark would be more appropriate
     const namedRange = activeDocument.addNamedRange(
-      'match',
+      "element",
       rangeBuilder.build()
     );
     const namedRangeId = namedRange.getId();
@@ -92,13 +122,13 @@ const addIdsToElements = (activeDocument, elements) => {
 const typeToString = type => {
   switch (type) {
     case DocumentApp.ElementType.BODY_SECTION:
-      return 'bodySection';
+      return "bodySection";
     case DocumentApp.ElementType.PARAGRAPH:
-      return 'paragraph';
+      return "paragraph";
     case DocumentApp.ElementType.TEXT:
-      return 'text';
+      return "text";
     default:
-      return 'unknown';
+      return "unknown";
   }
 };
 
@@ -117,7 +147,7 @@ const serializeElement = ({ id, element }) => {
   const node = {
     id,
     type,
-    attributes
+    attributes,
   };
 
   const text = extractText(element);
@@ -129,7 +159,7 @@ const serializeElement = ({ id, element }) => {
 
 const extractTree = element => {
   const node = {
-    element: element
+    element: element,
   };
   if (element.getNumChildren) {
     const numChildren = element.getNumChildren();
@@ -143,7 +173,7 @@ const extractTree = element => {
       children.push(childNode);
     }
 
-    node['children'] = children;
+    node["children"] = children;
   }
 
   return node;

@@ -1,12 +1,12 @@
 /* global google:false */
 
-import React, { Component } from 'react';
-import './App.css';
-import { exampleDocument } from './exampleDocument';
+import React, { Component } from "react";
+import "./App.css";
+import { exampleDocument } from "./exampleDocument";
 
 const getDocument = () => {
   return new Promise(function(resolve, reject) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
@@ -39,18 +39,18 @@ const analyze = textElements => {
 
     return {
       id: i,
-      description: 'You should delete this part',
+      description: "You should delete this part",
       context: element.text,
       startIndex: randomStartIndex,
       endIndex: randomEndIndex,
       element: element,
-      replacement: '',
-      color: '#ff0000'
+      replacement: "",
+      color: "#ff0000",
     };
   });
 
   return Promise.resolve({
-    suggestions: randomNonsensicalSuggestions
+    suggestions: randomNonsensicalSuggestions,
   });
 };
 
@@ -69,7 +69,7 @@ const runAnalysis = () => {
       return analyze(document.document);
     })
     .then(analysis => {
-      highlightAnalysis(analysis);
+      // highlightAnalysis(analysis); // This is a little bit too flaky
       return analysis;
     })
     .catch(error => {
@@ -79,7 +79,7 @@ const runAnalysis = () => {
 
 const focusOnElement = elementId => {
   return new Promise(function(resolve, reject) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
@@ -92,20 +92,19 @@ const focusOnElement = elementId => {
 
 const highlightAnalysis = analysis => {
   return new Promise(function(resolve, reject) {
-    if (process.env.NODE_ENV === 'production') {
-      const highlights = analysis.suggestions.map(suggestion => {
+    if (process.env.NODE_ENV === "production") {
+      const suggestionHighlights = analysis.suggestions.map(suggestion => {
         return {
           elementId: suggestion.element.id,
           startIndex: suggestion.startIndex,
           endIndex: suggestion.endIndex,
-          color: suggestion.color
+          color: suggestion.color,
         };
       });
-      console.log(highlights);
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
-        .highlightAnalysis(highlights);
+        .highlightSuggestions(suggestionHighlights);
     } else {
       resolve({ success: true });
     }
@@ -114,7 +113,7 @@ const highlightAnalysis = analysis => {
 
 const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
   return new Promise(function(resolve, reject) {
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
@@ -157,7 +156,7 @@ class App extends Component {
     super(props);
 
     this.state = {
-      analysis: null
+      analysis: null,
     };
 
     this.handleAnalyzeButtonPress = this.handleAnalyzeButtonPress.bind(this);
@@ -183,8 +182,8 @@ class App extends Component {
         analysis: {
           suggestions: this.state.analysis.suggestions.filter(
             s => s.id !== suggestionId
-          )
-        }
+          ),
+        },
       });
     });
   }
@@ -203,9 +202,17 @@ class App extends Component {
     });
   }
 
+  componentWillMount() {
+    console.log("Will Mount");
+  }
+
+  componentWillUnmount() {
+    console.log("Will Unmount");
+  }
+
   render() {
-    const suggestions = this.state.analysis &&
-      this.state.analysis.suggestions || [];
+    const suggestions = (this.state.analysis &&
+      this.state.analysis.suggestions) || [];
     return (
       <div className="sidebar">
         <div id="suggestions">

@@ -54,14 +54,6 @@ const analyze = textElements => {
   });
 };
 
-const printElement = prefix => element => {
-  if (element.text) {
-    console.log(prefix, element.id, element.type, element.text);
-  } else {
-    console.log(prefix, element.id, element.type);
-  }
-};
-
 const runAnalysis = () => {
   return getDocument()
     .then(document => {
@@ -126,12 +118,19 @@ const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
 
 const Suggestion = (handleLinkTo, handleFixIt) => suggestion => {
   return (
-    <div key={suggestion.id}>
-      <p>{suggestion.description}</p>
+    <div className="suggestion" key={suggestion.id}>
+      <p className="suggestion__description">{suggestion.description}</p>
       <SuggestionContext suggestion={suggestion} />
-      <p>
-        <a onClick={() => handleLinkTo(suggestion.id)}>Scroll to</a>
-        <a onClick={() => handleFixIt(suggestion.id)}>Fix it!</a>
+      <p className="suggestion__actions">
+        <button className="button" onClick={() => handleLinkTo(suggestion.id)}>
+          Scroll to
+        </button>
+        <button
+          className="button green"
+          onClick={() => handleFixIt(suggestion.id)}
+        >
+          Fix it!
+        </button>
       </p>
     </div>
   );
@@ -144,9 +143,11 @@ const SuggestionContext = ({ suggestion }) => {
     suggestion.endIndex
   );
   const after = suggestion.context.slice(suggestion.endIndex);
+
+  const highlightStyle = { backgroundColor: suggestion.color };
   return (
-    <p>
-      {before}<span className="highlight">{core}</span>{after}
+    <p className="suggestion__context">
+      {before}<span style={highlightStyle}>{core}</span>{after}
     </p>
   );
 };
@@ -215,12 +216,13 @@ class App extends Component {
       this.state.analysis.suggestions) || [];
     return (
       <div className="sidebar">
+        <div>
+          <button onClick={this.handleAnalyzeButtonPress}>Analyze</button>
+        </div>
         <div id="suggestions">
           {suggestions.map(Suggestion(this.handleLinkTo, this.handleFixIt))}
         </div>
-        <div className="block" id="button-bar">
-          <button onClick={this.handleAnalyzeButtonPress}>Analyze</button>
-        </div>
+
       </div>
     );
   }

@@ -27,7 +27,7 @@ const focusOnElement = elementId => {
   const elements = namedRange.getRange().getRangeElements();
   const element = elements[0].getElement();
   const position = activeDocument.newPosition(element, 0);
-  activeDocument.setCursor(position);
+  activeDocument.setCursor(position); // Should probably rather use setSelection
 
   return { success: true };
 };
@@ -40,6 +40,22 @@ const fixFromSuggestion = (elementId, startIndex, endIndex, replacement) => {
 
   element.deleteText(startIndex, endIndex - 1);
   element.insertText(startIndex, replacement);
+
+  return { success: true };
+};
+
+const highlightAnalysis = highlights => {
+  const activeDocument = DocumentApp.getActiveDocument();
+  highlights.forEach(({ elementId, startIndex, endIndex, color }) => {
+    const namedRange = activeDocument.getNamedRangeById(elementId);
+    const elements = namedRange.getRange().getRangeElements();
+    const element = elements[0].getElement();
+
+    const attributes = {};
+    attributes[DocumentApp.Attribute.BACKGROUND_COLOR] = color;
+
+    element.setAttributes(startIndex, endIndex - 1, attributes);
+  });
 
   return { success: true };
 };
@@ -63,6 +79,7 @@ const addIdsToElements = (activeDocument, elements) => {
     const rangeBuilder = activeDocument.newRange();
     rangeBuilder.addElement(element);
 
+    // It might be that a Bookmark would be more appropriate
     const namedRange = activeDocument.addNamedRange(
       'match',
       rangeBuilder.build()

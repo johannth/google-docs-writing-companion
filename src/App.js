@@ -44,7 +44,8 @@ const analyze = textElements => {
       startIndex: randomStartIndex,
       endIndex: randomEndIndex,
       element: element,
-      replacement: ''
+      replacement: '',
+      color: '#ff0000'
     };
   });
 
@@ -67,6 +68,10 @@ const runAnalysis = () => {
       console.log(JSON.stringify(document));
       return analyze(document.document);
     })
+    .then(analysis => {
+      highlightAnalysis(analysis);
+      return analysis;
+    })
     .catch(error => {
       alert(error);
     });
@@ -79,6 +84,28 @@ const focusOnElement = elementId => {
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
         .focusOnElement(elementId);
+    } else {
+      resolve({ success: true });
+    }
+  });
+};
+
+const highlightAnalysis = analysis => {
+  return new Promise(function(resolve, reject) {
+    if (process.env.NODE_ENV === 'production') {
+      const highlights = analysis.suggestions.map(suggestion => {
+        return {
+          elementId: suggestion.element.id,
+          startIndex: suggestion.startIndex,
+          endIndex: suggestion.endIndex,
+          color: suggestion.color
+        };
+      });
+      console.log(highlights);
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject)
+        .highlightAnalysis(highlights);
     } else {
       resolve({ success: true });
     }

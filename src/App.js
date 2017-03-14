@@ -4,6 +4,8 @@ import React, { Component } from "react";
 import "./App.css";
 import { exampleDocument } from "./exampleDocument";
 
+import { analyze } from "./analyzers";
+
 const getDocument = () => {
   return new Promise(function(resolve, reject) {
     if (process.env.NODE_ENV === "production") {
@@ -17,47 +19,9 @@ const getDocument = () => {
   });
 };
 
-const randomSubset = (arr, size) => {
-  const shuffled = arr.slice(0);
-  var i = arr.length;
-  var temp;
-  var index;
-  while (i--) {
-    index = Math.floor((i + 1) * Math.random());
-    temp = shuffled[index];
-    shuffled[index] = shuffled[i];
-    shuffled[i] = temp;
-  }
-  return shuffled.slice(0, size);
-};
-
-const analyze = textElements => {
-  const randomTextElements = randomSubset(textElements, 5);
-  const randomNonsensicalSuggestions = randomTextElements.map((element, i) => {
-    const randomStartIndex = Math.floor(Math.random() * element.text.length);
-    const randomEndIndex = Math.min(randomStartIndex + 15, element.text.length);
-
-    return {
-      id: i,
-      description: "You should delete this part",
-      context: element.text,
-      startIndex: randomStartIndex,
-      endIndex: randomEndIndex,
-      element: element,
-      replacement: "",
-      color: "#ff0000",
-    };
-  });
-
-  return Promise.resolve({
-    suggestions: randomNonsensicalSuggestions,
-  });
-};
-
 const runAnalysis = () => {
   return getDocument()
     .then(document => {
-      console.log(JSON.stringify(document));
       return analyze(document.document);
     })
     .then(analysis => {

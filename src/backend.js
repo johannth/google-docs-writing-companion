@@ -22,13 +22,16 @@ const showSidebar = () => {
   DocumentApp.getUi().showSidebar(ui);
 };
 
-const focusOnElement = elementId => {
+const focusOnElement = (elementId, startIndex, endIndex) => {
   const activeDocument = DocumentApp.getActiveDocument();
   const namedRange = activeDocument.getNamedRangeById(elementId);
   const elements = namedRange.getRange().getRangeElements();
   const element = elements[0].getElement();
-  const position = activeDocument.newPosition(element, 0);
-  activeDocument.setCursor(position); // Should probably rather use setSelection
+
+  const rangeBuilder = activeDocument.newRange();
+  rangeBuilder.addElement(element, startIndex, endIndex - 1);
+
+  activeDocument.setSelection(rangeBuilder.build());
 
   return { success: true };
 };

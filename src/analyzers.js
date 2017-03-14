@@ -18,9 +18,27 @@ export const analyze = textElements => {
 };
 
 const createSuggestion = (
-  { id, description, context, startIndex, endIndex, replacement, color }
+  {
+    id,
+    description,
+    context,
+    startIndex,
+    endIndex,
+    element,
+    replacement,
+    color,
+  }
 ) => {
-  return { id, description, context, startIndex, endIndex, replacement, color };
+  return {
+    id,
+    description,
+    context,
+    startIndex,
+    endIndex,
+    element,
+    replacement,
+    color,
+  };
 };
 
 const runWriteGood = textElements => {

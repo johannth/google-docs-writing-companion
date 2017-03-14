@@ -33,13 +33,13 @@ const runAnalysis = () => {
     });
 };
 
-const focusOnElement = elementId => {
+const focusOnElement = (elementId, startIndex, endIndex) => {
   return new Promise(function(resolve, reject) {
     if (process.env.NODE_ENV === "production") {
       google.script.run
         .withSuccessHandler(resolve)
         .withFailureHandler(reject)
-        .focusOnElement(elementId);
+        .focusOnElement(elementId, startIndex, endIndex);
     } else {
       resolve({ success: true });
     }
@@ -87,7 +87,7 @@ const Suggestion = (handleLinkTo, handleFixIt) => suggestion => {
       <SuggestionContext suggestion={suggestion} />
       <p className="suggestion__actions">
         <button className="button" onClick={() => handleLinkTo(suggestion.id)}>
-          Scroll to
+          Highlight
         </button>
         {suggestion.replacement &&
           <button
@@ -156,8 +156,12 @@ class App extends Component {
 
   handleLinkTo(suggestionId) {
     const suggestion = this.getSuggestion(suggestionId);
-
-    focusOnElement(suggestion.element.id).then(result => {
+    console.log(suggestion);
+    focusOnElement(
+      suggestion.element.id,
+      suggestion.startIndex,
+      suggestion.endIndex
+    ).then(result => {
       console.log(result);
     });
   }

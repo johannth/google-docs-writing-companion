@@ -89,12 +89,13 @@ const Suggestion = (handleLinkTo, handleFixIt) => suggestion => {
         <button className="button" onClick={() => handleLinkTo(suggestion.id)}>
           Scroll to
         </button>
-        <button
-          className="button green"
-          onClick={() => handleFixIt(suggestion.id)}
-        >
-          Fix it!
-        </button>
+        {suggestion.replacement &&
+          <button
+            className="button green"
+            onClick={() => handleFixIt(suggestion.id)}
+          >
+            Fix it!
+          </button>}
       </p>
     </div>
   );
@@ -165,14 +166,6 @@ class App extends Component {
     runAnalysis().then(result => {
       this.setState({ analysis: result });
     });
-  }
-
-  componentWillMount() {
-    console.log("Will Mount");
-  }
-
-  componentWillUnmount() {
-    console.log("Will Unmount");
   }
 
   render() {
